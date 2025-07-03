@@ -11,6 +11,18 @@ end
 
 words = all_words.select { |word| word.length >= 5 and word.length < 13 }
 
+def hangman_string(current_word,guesses)
+  word_progress = ""
+  for letter in current_word
+    if guesses.include?(letter)
+      word_progress << "#{letter} "
+    else
+      word_progress << "_ "
+    end
+  end
+  puts word_progress
+end
+
 def play_game(words,game_mode=0)
   if game_mode == 0
     current_word = words[rand(0..words.length)].split("")
@@ -22,19 +34,8 @@ def play_game(words,game_mode=0)
     guesses = save_file["guesses"]
     incorrect = save_file["incorrect"]
     puts "Game imported successfully!"
-
-    # the below logic is duplicated later - make this a method
-    hangman_string = ""
-    for letter in current_word
-      if guesses.include?(letter)
-        hangman_string << "#{letter} "
-      else
-        hangman_string << "_ "
-      end
-    end
-    puts hangman_string
+    hangman_string(current_word,guesses)
     puts "Incorrect letters: #{incorrect.join(", ")}"
-
   end
 
   game_end = false
@@ -43,7 +44,6 @@ def play_game(words,game_mode=0)
   # the above line is for debugging only
    
   until game_end do
-    hangman_string = ""
     valid_guess = false
 
     until valid_guess do 
@@ -79,15 +79,8 @@ def play_game(words,game_mode=0)
       incorrect << guess
     end
 
-    for letter in current_word
-      if guesses.include?(letter)
-        hangman_string << "#{letter} "
-      else
-        hangman_string << "_ "
-      end
-    end
+    hangman_string(current_word,guesses)
 
-    puts hangman_string
     puts "Incorrect letters: #{incorrect.join(", ")}"
 
     if current_word - guesses == [] || incorrect.length > 8
@@ -101,11 +94,19 @@ def play_game(words,game_mode=0)
   elsif game_saved
     puts "Game saved!"
   else
-    puts "Better luck next time!"
+    puts "The word was #{current_word.join}. Better luck next time!"
   end
 
 end
 
-#play_game(words)
-play_game(words,1)
-# add play saved game logic
+if File.exist? 'lib/saved_game.yaml'
+  puts "Save game found! Enter 'y' to load saved game, or anything else to load new game."
+  new_game = gets.chomp.downcase
+  if new_game == "y"
+    play_game(words,1)
+  else
+    play_game(words)
+  end
+else
+  play_game(words)
+end
